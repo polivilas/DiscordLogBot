@@ -1,0 +1,6 @@
+Logs
+node_modules
+auth.json
+blacklist.json
+permissions.json
+config.json
