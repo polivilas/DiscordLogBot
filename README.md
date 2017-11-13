@@ -1,0 +1,2 @@
+# DiscordLogBot
+Log/dump messages
