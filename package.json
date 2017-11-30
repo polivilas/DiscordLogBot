@@ -1,0 +1,21 @@
+{
+  "name": "DiscordBot",
+  "version": "0.1.1",
+  "description": "Bot for Discord app",
+  "readme": "README.md",
+  "maintainers": [],
+  "author": "polivilas",
+  "license": "CC BY-NC-SA 3.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/polivilas/DiscordLogBot.git"
+  },
+  "dependencies": {
+    "discord.js": "11.1.x",
+    "npm": "",
+	"co": "^4.6.0",
+	"request": "^2.69.0",
+	"sanitize-filename": "^1.6.1"
+  },
+  "main": "discord_bot.js"
+}

@@ -74,7 +74,6 @@ try {
     blacklist = {}
 }
 
-
 var commands = {
     "ping": {
         process: function(bot, msg, suffix, isEdit, user) {
@@ -128,13 +127,10 @@ var commands = {
     },
     "dump": {
         process: function(bot, msg, suffix, isEdit, user) {
-            if (!bot.user.bot) {
-                msg.edit("Dumping all messages on user account is not a good idea...");
-                msg.delete(8000)
-                return;
-            }
-            msg.channel.send("Getting all messages...").then((message => message.delete(8000)))
-            dumpChannel(msg.channel, msg.id, user);
+			let args = suffix.split(" ");
+			msg.delete(3000);
+            msg.channel.send("Getting all messages...").then((message => message.delete(3000)))
+            dumpChannel(msg.channel, msg.id, user, args[0]);
         }
     },
     "getlogs": {
@@ -209,7 +205,7 @@ bot.on("disconnected", function() {
     console.log("Disconnected!");
 });
 
-function dumpChannel(channel, snowflake, user) {
+function dumpChannel(channel, snowflake, user, target) {
     var nextSnowflake;
     var oldestTimestamp;
     channel.fetchMessages({
@@ -219,7 +215,14 @@ function dumpChannel(channel, snowflake, user) {
         .then(messages => {
             console.log(`Received ${messages.size} messages`);
             for (var i = 0, len = messages.size; i < len; i++) {
-                checkMessage((messages.array())[i], false, true);
+				if (target != undefined && target != "") {
+					if (target == (messages.array())[i].author.username)
+					{
+						checkMessage((messages.array())[i], false, true);
+					}
+				} else {
+					checkMessage((messages.array())[i], false, true);
+				};
                 if (!oldestTimestamp) {
                     oldestTimestamp = (messages.array())[i].createdTimestamp;
                 }
@@ -230,27 +233,11 @@ function dumpChannel(channel, snowflake, user) {
             }
             if (messages.size < 50) {
                 console.log("No more messages!");
-                msg.channel.send("Done! Check PM!");
-                var serv = (msg.guild || {
-                    name: 'Direct Messages'
-                }).name.replace(/\//g, '_')
-                var chan = (channel.name || 'Group DM').replace(/\//g, '_')
-                serv = sanitize(serv, {
-                    replacement: "_"
-                });
-                chan = sanitize(chan, {
-                    replacement: "_"
-                });
-				if (fs.existsSync(`Logs/${serv}/${chan}/chat.txt`)) {
-					user.send("Here you go :)", {
-						file: `Logs/${serv}/${chan}/chat.txt`
-					});
-				}
                 return
             } else {
                 console.log("Iteration done!");
                 setTimeout(function() {
-                    dumpChannel(channel, nextSnowflake, user)
+                    dumpChannel(channel, nextSnowflake, user, target)
                     return
                 }, 2000);
             }
@@ -261,34 +248,32 @@ function dumpChannel(channel, snowflake, user) {
 
 function checkMessage(msg, isEdit, dump) {
     if (!dump) {
-		if (msg.guild) {
-			if (((msg.author.id != bot.user.id && bot.user.bot) || (msg.author.id == bot.user.id && !bot.user.bot)) && (msg.content.startsWith(Config.commandPrefix))) {
-				var cmdTxt = msg.content.split(" ")[0].substring(Config.commandPrefix.length);
-				var suffix = msg.content.substring(cmdTxt.length + Config.commandPrefix.length + 1);
-				var cmd = commands[cmdTxt];
-				if (cmd) {
-					if (Permissions.checkPermission(msg.author, cmdTxt)) {
-						try {
-							cmd.process(bot, msg, suffix, isEdit, msg.author);
-						} catch (e) {
-							var msgTxt = "!UH OH! " + cmdTxt + " failed!";
-							msgTxt += "\n" + e.stack;
-							msg.channel.send(msgTxt);
-						}
-					} else {
-						msg.channel.send("You are not allowed to run " + cmdTxt + "!");
+		if (((msg.author.id != bot.user.id && bot.user.bot) || (msg.author.id == bot.user.id && !bot.user.bot)) && (msg.content.startsWith(Config.commandPrefix))) {
+			var cmdTxt = msg.content.split(" ")[0].substring(Config.commandPrefix.length);
+			var suffix = msg.content.substring(cmdTxt.length + Config.commandPrefix.length + 1);
+			var cmd = commands[cmdTxt];
+			if (cmd) {
+				if (Permissions.checkPermission(msg.author, cmdTxt)) {
+					try {
+						cmd.process(bot, msg, suffix, isEdit, msg.author);
+					} catch (e) {
+						var msgTxt = "!UH OH! " + cmdTxt + " failed!";
+						msgTxt += "\n" + e.stack;
+						msg.channel.send(msgTxt);
 					}
 				} else {
-					msg.channel.send(cmdTxt + " not recognized!").then((message => message.delete(5000)))
+					msg.channel.send("You are not allowed to run " + cmdTxt + "!");
 				}
+			} else {
+				msg.channel.send(cmdTxt + " not recognized!").then((message => message.delete(5000)))
 			}
 		}
-        if (msg.guild) {
-            blacklisted = blacklist[msg.guild.id];
-            if (blacklisted) {
-                return
-            }
-        }
+		if (msg.guild) {
+			blacklisted = blacklist[msg.guild.id];
+			if (blacklisted) {
+				return
+			}
+		}
     }
     var serv = (msg.guild || {
         name: 'Direct Messages'
@@ -307,10 +292,13 @@ function checkMessage(msg, isEdit, dump) {
     user = sanitize(user, {
         replacement: "_"
     });
-    mkdirp(`Logs/${serv}/${chan}`, function(err) {
+    mkdirp(`Logs/${serv}/${chan}/${user}`, function(err) {
         if (err) console.error(err)
-        else fs.appendFile(`Logs/${serv}/${chan}/chat.txt`, (msg.createdAt.toTimeString()).concat(" ").concat(msg.author.username).concat("#").concat(msg.author.discriminator).concat(" - ").concat(msg.cleanContent).concat("\r\n"));
-        return;
+        else {
+			fs.appendFile(`Logs/${serv}/${chan}/chat.txt`, (msg.createdAt.toTimeString()).concat(" ").concat(msg.author.username).concat("#").concat(msg.author.discriminator).concat(" - ").concat(msg.cleanContent).concat("\r\n"));
+			fs.appendFile(`Logs/${serv}/${chan}/${user}/chat.txt`, (msg.cleanContent).concat("\r\n"));
+		}
+		return;
     });
     msg.attachments.map(co.wrap(function*(file) {
         console.log(`Received attachment from ${serv}/${chan}/${user}`)
