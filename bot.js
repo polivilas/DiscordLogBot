@@ -295,7 +295,7 @@ function checkMessage(msg, isEdit, dump) {
     mkdirp(`Logs/${serv}/${chan}/${user}`, function(err) {
         if (err) console.error(err)
         else {
-			fs.appendFile(`Logs/${serv}/${chan}/chat.txt`, (msg.createdAt.toTimeString()).concat(" ").concat(msg.author.username).concat("#").concat(msg.author.discriminator).concat(" - ").concat(msg.cleanContent).concat("\r\n"));
+			fs.appendFile(`Logs/${serv}/${chan}/chat.txt`, (msg.createdAt.toLocaleString()).concat(" ").concat(msg.author.username).concat("#").concat(msg.author.discriminator).concat(" - ").concat(msg.cleanContent).concat("\r\n"));
 			fs.appendFile(`Logs/${serv}/${chan}/${user}/chat.txt`, (msg.cleanContent).concat("\r\n"));
 		}
 		return;
@@ -319,7 +319,7 @@ function checkMessage(msg, isEdit, dump) {
     if (msg.isMentioned(bot.user)) {
         mkdirp(`Logs/${serv}`, function(err) {
             if (err) console.error(err)
-            else fs.appendFile(`Logs/${serv}/mentions.txt`, (msg.createdAt.toTimeString()).concat(" ").concat(msg.author.username).concat("#").concat(msg.author.discriminator).concat(" - ").concat(msg.cleanContent).concat("\r\n"));
+            else fs.appendFile(`Logs/${serv}/mentions.txt`, (msg.createdAt.toLocaleString()).concat(" ").concat(msg.author.username).concat("#").concat(msg.author.discriminator).concat(" - ").concat(msg.cleanContent).concat("\r\n"));
             console.log((msg.author.username).concat(" mentioned you at ").concat(`${serv}`).concat(" in #").concat(`${chan}`));
             return;
         });
@@ -367,7 +367,7 @@ bot.on("messageDelete", (msg) => {
     console.log((user).concat(" deleted a message at ").concat(serv).concat(" in #").concat(`${chan}`).concat("!"));
     mkdirp(`Logs/${serv}/${chan}`, function(err) {
         if (err) console.error(err)
-        else fs.appendFile(`Logs/${serv}/${chan}/deletedMessages.txt`, (msg.createdAt.toTimeString()).concat(" ").concat(msg.author.username).concat("#").concat(msg.author.discriminator).concat(" - ").concat(msg.cleanContent).concat("\r\n"));
+        else fs.appendFile(`Logs/${serv}/${chan}/deletedMessages.txt`, (msg.createdAt.toLocaleString()).concat(" ").concat(msg.author.username).concat("#").concat(msg.author.discriminator).concat(" - ").concat(msg.cleanContent).concat("\r\n"));
         return;
     });
     return;
